@@ -54,7 +54,7 @@ variable "hcp_tf_workspace_vcs" {
       workspace_tag_name  = ["leejunho"]
       execution_mode      = "remote"
     }
-    nomad_setup = {
+    aws_eks_addon = {
       vcs_repo_identifier = "jhlee-terraform/aws_eks"
       working_directory   = "/04.aws_eks_addon"
       trigger_patterns    = ["/04.aws_eks_addon/**/*"]

@@ -45,7 +45,7 @@ variable "hcp_tf_workspace_vcs" {
     workspace_tag_name  = list(string)
   }))
   default = {
-    aws_infra = {
+    aws_eks = {
       vcs_repo_identifier = "jhlee-terraform/aws_eks"
       working_directory   = "/03.aws_eks"
       trigger_patterns    = ["/03.aws_eks/**/*"]

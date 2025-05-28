@@ -1,5 +1,5 @@
 locals {
-  region          = "ap-northeast-2"
+  region = "ap-northeast-2"
 
   # 공통 태그
   owner       = "junholee"
@@ -16,6 +16,6 @@ locals {
     ManagedBy   = local.managed_by
   }
 
-  tfc_org_name = "jhlee-terraform"
+  tfc_org_name      = "junholee_org"
   tfc_workspace_eks = "aws-eks"
 }

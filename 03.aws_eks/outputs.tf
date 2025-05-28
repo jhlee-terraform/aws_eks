@@ -1,6 +1,6 @@
 output "cert_arn" {
   description = "ACM 인증서 ARN"
-  value = aws_acm_certificate_validation.cert_validation.certificate_arn
+  value       = aws_acm_certificate_validation.cert_validation.certificate_arn
 }
 
 output "eks_cluster_name" {
@@ -28,3 +28,7 @@ output "eks_cluster_ca_data" {
   value       = module.eks.cluster_certificate_authority_data
 }
 
+output "vpc_id" {
+  description = "VPC ID"
+  value       = module.vpc.vpc_id
+}

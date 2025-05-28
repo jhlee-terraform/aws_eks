@@ -82,6 +82,7 @@ resource "helm_release" "load_balancer_controller" {
       {
         load_balancer_controller_role_arn = module.load_balancer_controller_irsa_role.iam_role_arn,
         eks_cluster_name                  = data.terraform_remote_state.eks_workspace.outputs.eks_cluster_name,
+        vpc_id                            = data.terraform_remote_state.eks_workspace.outputs.vpc_id,
       }
     )
   ]

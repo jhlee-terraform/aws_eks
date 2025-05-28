@@ -4,3 +4,5 @@ serviceAccount:
   annotations:
     eks.amazonaws.com/role-arn: ${load_balancer_controller_role_arn}
 clusterName: ${eks_cluster_name}
+
+vpcId: ${vpc_id}

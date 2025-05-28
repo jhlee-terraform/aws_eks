@@ -68,7 +68,7 @@ module "eks" {
   cluster_name                         = "${local.owner}-${local.project}-eks-cluster"
   cluster_version                      = local.cluster_version
   cluster_endpoint_public_access       = true
-  cluster_endpoint_public_access_cidrs = var.cluster_endpoint_public_access_cidrs
+  cluster_endpoint_public_access_cidrs = ["0.0.0.0/0"]
 
   cluster_addons = {
     coredns = {

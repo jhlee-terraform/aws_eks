@@ -103,7 +103,7 @@ EKS 운영에 필요한 모든 리소스를 코드로 선언적으로 관리합�
 
   - ```hcl
     cluster_endpoint_public_access = true
-    cluster_endpoint_public_access_cidrs = ["10.0.0.0/8", "203.0.113.0/24"]
+    cluster_endpoint_public_access_cidrs = ["0.0.0.0/0"]
     ```
 
   - 운영 환경에서는 보통 VPN 등 내부망에서만 접근하도록 false로 설정하는 것이 보안상 안전합니다.

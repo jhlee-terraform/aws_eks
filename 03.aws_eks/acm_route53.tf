@@ -36,7 +36,3 @@ resource "aws_route53_record" "route53_record" {
   type            = each.value.type
   zone_id         = aws_route53_zone.hosting_zone.zone_id
 }
-
-output "cert_arn" {
-  value = aws_acm_certificate_validation.cert_validation.certificate_arn
-}

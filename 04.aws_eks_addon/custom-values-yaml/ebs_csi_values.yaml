@@ -2,7 +2,7 @@ controller:
   replicaCount: 3
   region: ap-northeast-2
   serviceAccount:
-    create: false
+    create: true
     name: ebs-csi-controller-sa
     annotations:
       eks.amazonaws.com/role-arn: ${ebs-csi-controller-role-arn}

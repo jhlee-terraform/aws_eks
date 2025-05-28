@@ -154,6 +154,10 @@ module "eks" {
       # so we need to disable it to use the default template provided by the AWS EKS managed node group service
       use_custom_launch_template = false
 
+      labels = {
+        affinity = "dev"
+      }
+
       name            = "${local.owner}-${local.project}-managed-ng"
       use_name_prefix = false
       description     = "Node group for Karpenter, EBS CSI, LB Controller, ExternalDNS and other system addons"

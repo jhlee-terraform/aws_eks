@@ -97,7 +97,7 @@ resource "helm_release" "external_dns" {
     templatefile("${path.module}/custom-values-yaml/external_dns_values.yaml",
       {
         txtOwnerId            = data.terraform_remote_state.eks_workspace.outputs.route53_zone_id,
-        domainFilters         = [local.domain_name],
+        domainFilters         = local.domain_name,
         external_dns_role_arn = module.external_dns_irsa_role.iam_role_arn,
       }
     )

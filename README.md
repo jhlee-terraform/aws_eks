@@ -93,8 +93,7 @@ Terraform Cloud를 통해 모든 AWS 리소스를 Terraform Code로 VCS(GitHub)�
 
 ### 2-3) EKS 클러스터 및 노드 그룹 배포
 
-- [03.aws_eks](https://github.com/jhlee-terraform/aws_eks/tree/main/03.aws_eks/main.tf) 에서 **terraform-aws-modules/eks/aws** 모듈을 사용하여 EKS 클러스터, Managed Node Group(노드 그룹), 클러스터 애드온, KMS 암호화, access_entries(정책 기반 접근 제어) 등
-EKS 운영에 필요한 모든 리소스를 코드로 선언적으로 관리합니다.
+- [03.aws_eks](https://github.com/jhlee-terraform/aws_eks/tree/main/03.aws_eks/main.tf) 에서 **terraform-aws-modules/eks/aws** 모듈을 사용하여 EKS 클러스터, Managed Node Group(노드 그룹), 클러스터 애드온, KMS 암호화, access_entries(정책 기반 접근 제어) 등 EKS 운영에 필요한 모든 리소스를 코드로 선언적으로 관리합니다.
 
 ### 2-4) EKS 모듈의 주요 옵션 및 설정 설명
 
@@ -191,10 +190,6 @@ EKS 운영에 필요한 모든 리소스를 코드로 선언적으로 관리합�
     ```
 
   - 노드 그룹별로 인스턴스 타입, 크기, IAM Role 등을 코드로 관리하여 확장성과 보안성 강화합니다.
-  - **이렇게 매니지드 노드 그룹을 만든 이유:**
-    - 매니지드 노드그룹(Managed Node Group)은 Karpenter, LB Controller, ExternalDNS, EBS CSI Driver 등 Add-On 시스템 파드 전용으로 사용합니다.
-    - 실제 워크로드(애플리케이션 파드 등)는 Karpenter가 동적으로 생성하는 별도의 EC2 노드에서 실행되도록 설계하는 것이 실무적 베스트 프랙티스입니다.
-    - 이를 통해 시스템 파드와 워크로드 파드의 리소스/스케일링/보안 경계를 분리할 수 있으며, 운영 중에도 Karpenter의 자동 확장/축소 기능을 최대한 활용할 수 있습니다.
 
 - **create_kms_key / cluster_encryption_config**
   - KMS 기반 시크릿 암호화 설정
@@ -208,4 +203,104 @@ EKS 운영에 필요한 모든 리소스를 코드로 선언적으로 관리합�
 
   - 클러스터 내 민감 정보(Secret 등) 암호화로 보안성을 강화합니다.
 
+### 2-5) Terraform Cloud를 통한 AWS 리소스 프로비저닝
+
+- ![Terraform Cloud 에서 리소스 배포](images/07.eks_provisoning.png)
+
 ---
+
+## 3. EKS Addon(Helm) 리소스 배포
+
+공식 Helm Chart와 Terraform Helm provider를 활용하여 EKS 클러스터에 주요 Addon(Load Balancer Controller, ExternalDNS, EBS CSI Driver, EFS CSI Driver 등)을 정책 기반 IAM Role(IRSA)과 함께 안전하게 배포합니다.
+
+### 3-1) IRSA 기반 Addon용 IAM Role 자동화
+
+- [04.aws_eks_addon](https://github.com/jhlee-terraform/aws_eks/tree/main/03.aws_eks_addon/main.tf)에서 **terraform-aws-modules/iam/aws//modules/iam-role-for-service-accounts-eks** 모듈을 활용해 각 Addon별로 필요한 IAM Role을 IRSA 방식으로 자동 생성합니다.
+
+### 3-2) Helm provider 기반 Addon 배포
+
+- 공식 Helm provider와 templatefile을 활용해 각 Addon의 values.yaml을 동적으로 생성, 실무적 옵션을 명확히 관리합니다.
+
+#### 3-2-1) **AWS Load Balancer Controller**
+
+- AWS Load Balancer Controller를 설치하여 Ingress/Service 타입 LB 자동화 설정이 가능합니다.
+
+- **주요 옵션**
+  - `serviceAccount.annotations.eks.amazonaws.com/role-arn`: IRSA로 연결된 IAM Role
+  - `clusterName`: EKS 클러스터 이름
+  - `vpcId`: 클러스터 VPC ID (IMDS 차단 환경 대응)
+
+- **예시 values.yaml**
+
+  ```yaml
+  serviceAccount:
+    create: true
+    name: aws-load-balancer-controller
+    annotations:
+      eks.amazonaws.com/role-arn: ${load_balancer_controller_role_arn}
+  clusterName: ${eks_cluster_name}
+  vpcId: ${vpc_id}
+  ```
+
+#### 3-2-2) **ExternalDNS**
+
+- ExternalDNS를 설치하여 도메인 자동 등록/삭제 가 가능합니다.
+
+- **주요 옵션**
+  - `serviceAccount.annotations.eks.amazonaws.com/role-arn`: IRSA로 연결된 IAM Role
+  - `txtOwnerId`: Route53 Hosted Zone ID
+  - `domainFilters`: 관리할 도메인 리스트(배열)
+  - `provider.name`: "aws"
+  
+- **예시 values.yaml**
+
+  ```yaml
+  serviceAccount:
+    create: true
+    name: external-dns
+    annotations:
+      eks.amazonaws.com/role-arn: ${external_dns_role_arn}
+  txtOwnerId: ${txtOwnerId}
+  domainFilters: [${domainFilters}]
+  provider:
+    name: aws
+  ```
+
+#### 3-2-2) **EBS CSI Driver**
+
+- **주요 옵션**
+  - `controller.serviceAccount.annotations.eks.amazonaws.com/role-arn`: IRSA로 연결된 IAM Role
+  - `controller.region`: 클러스터 리전
+  - `storageClasses`: gp3 등 스토리지 클래스 자동 생성
+
+- **예시 values.yaml**
+
+  ```yaml
+  controller:
+    region: ap-northeast-2
+    serviceAccount:
+      create: true
+      name: ebs-csi-controller-sa
+      annotations:
+        eks.amazonaws.com/role-arn: ${ebs-csi-controller-role-arn}
+  storageClasses:
+    - name: gp3
+      annotations:
+        storageclass.kubernetes.io/is-default-class: "true"
+      parameters:
+        type: gp3
+        csi.storage.k8s.io/fstype: ext4
+  ```
+
+> **참고:**
+> IRSA + Helm provider + templatefile 조합으로 Addon별 `IAM Role`, `ServiceAccount`, `values.yaml`, `Helm Chart 배포`를 코드로 일관성 있게 관리합니다.
+> 모든 Addon은 최소 권한 원칙, OIDC 기반 정책 제어, 실무적 네이밍/태깅을 적용합니다.
+> `values.yaml` 템플릿화로 환경별 옵션(도메인, VPC, 리전 등) 자동 주입합니다.
+
+### 3-3) Terraform Cloud를 통한 AWS Add-On 리소스 프로비저닝
+
+- ![Terraform Cloud 에서 Add-On 리소스 배포](images/08.eks_add_on_provisioning.png)
+
+### 3-3) Helm list 확인
+
+- ![Helm list](images/06.helm_list.png)

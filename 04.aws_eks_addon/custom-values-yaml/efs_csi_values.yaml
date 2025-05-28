@@ -1,0 +1,21 @@
+controller:
+  serviceAccount:
+    create: false
+    name: efs-csi-controller-sa
+
+node:
+  serviceAccount:
+    create: false
+    name: efs-csi-node-sa
+
+provisioner:
+  enabled: true
+  provisioningMode: efs-ap
+  fileSystemId: fs-068756994104d49e1
+  directoryPerms: "777"
+
+storageClass:
+  create: true
+  name: efs-dynamic-sc
+  reclaimPolicy: Retain
+  volumeBindingMode: Immediate

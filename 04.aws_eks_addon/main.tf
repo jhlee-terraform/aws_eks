@@ -51,3 +51,54 @@ module "ebs_csi_irsa_role" {
     }
   }
 }
+
+resource "helm_release" "aws_ebs_csi_driver" {
+  name = "aws-ebs-csi-driver"
+
+  repository = "https://kubernetes-sigs.github.io/aws-ebs-csi-driver"
+  chart      = "aws-ebs-csi-driver"
+  namespace  = "kube-system"
+  version    = "2.24.0"
+
+  values = [
+    templatefile("${path.module}/custom-values-yaml/ebs_csi_values.yaml",
+      {
+        ebs-csi-controller-role-arn = module.ebs_csi_irsa_role.iam_role_arn,
+      }
+    )
+  ]
+}
+
+resource "helm_release" "helm_AWSLoadBalancerController" {
+  name = "aws-load-balancer-controller"
+
+  repository = "https://aws.github.io/eks-charts"
+  chart      = "aws-load-balancer-controller"
+  version    = "1.6.2" # https://github.com/aws/eks-charts/tree/gh-pages
+  namespace = "kube-system"
+
+  values = [
+    templatefile("${path.module}/custom-values-yaml/lb_controller_values.yaml",
+      {
+        load-balancer-controller-role-arn = module.load_balancer_controller_irsa_role.iam_role_arn,
+        eks_cluster_name = data.terraform_remote_state.eks_workspace.outputs.eks_cluster_name,
+      }
+    )
+  ]
+}
+
+resource "helm_release" "external_dns" {
+  name       = "external-dns"
+  repository = "https://kubernetes-sigs.github.io/external-dns"
+  chart      = "external-dns"
+  namespace  = "kube-system"
+  
+  values = [
+    templatefile("${path.module}/custom-values-yaml/external_dns_values.yaml",
+      {
+        txtOwnerId = "${data.terraform_remote_state.eks_workspace.outputs.route53_zone_id}",
+        domainFilters = "${local.domain_name}",
+      }
+    )
+  ]
+}

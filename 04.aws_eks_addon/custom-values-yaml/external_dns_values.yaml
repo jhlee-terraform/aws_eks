@@ -1,0 +1,29 @@
+image:
+  # -- Image repository for the `external-dns` container.
+  repository: registry.k8s.io/external-dns/external-dns
+  # -- (string) Image tag for the `external-dns` container, this will default to `.Chart.AppVersion` if not set.
+  tag: v0.14.0
+  # -- Image pull policy for the `external-dns` container.
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  # -- If `true`, create a new `ServiceAccount`.
+  create: true
+  # -- Labels to add to the service account.
+  labels: 
+    app.kubernetes.io/name: external-dns-controller
+  # -- Annotations to add to the service account. Templates are allowed in both the key and the value. Example: `example.com/annotation/{{ .Values.nameOverride }}: {{ .Values.nameOverride }}`
+  annotations:
+    eks.amazonaws.com/role-arn: ${external-dns-role-arn}
+  # -- (string) If this is set and `serviceAccount.create` is `true` this will be used for the created `ServiceAccount` name, if set and `serviceAccount.create` is `false` then this will define an existing `ServiceAccount` to use.
+  name: external-dns
+  # -- Set this to `false` to [opt out of API credential automounting](https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/#opt-out-of-api-credential-automounting) for the `ServiceAccount`.
+  automountServiceAccountToken: true
+
+registry: txt
+txtOwnerId: ${txtOwnerId}
+domainFilters: [${domainFilters}]
+
+provider:
+  # -- _ExternalDNS_ provider name; for the available providers and how to configure them see [README](https://github.com/kubernetes-sigs/external-dns/blob/master/charts/external-dns/README.md#providers).
+  name: aws

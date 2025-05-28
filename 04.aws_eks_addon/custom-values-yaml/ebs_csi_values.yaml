@@ -1,0 +1,22 @@
+controller:
+  replicaCount: 3
+  region: ap-northeast-2
+  serviceAccount:
+    create: false
+    name: ebs-csi-controller-sa
+    annotations:
+      eks.amazonaws.com/role-arn: ${ebs-csi-controller-role-arn}
+
+node:
+  tolerateAllTaints: true
+
+storageClasses:
+  - name: gp3
+    annotations:
+      storageclass.kubernetes.io/is-default-class: "true"
+    volumeBindingMode: WaitForFirstConsumer
+    reclaimPolicy: Delete
+    allowVolumeExpansion: true
+    parameters:
+      type: gp3
+      csi.storage.k8s.io/fstype: ext4

@@ -17,5 +17,5 @@ locals {
   }
 
   tfc_org_name      = "junholee_org"
-  tfc_workspace_eks = "aws-eks"
+  tfc_workspace_eks = "aws_eks"
 }

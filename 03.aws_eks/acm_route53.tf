@@ -36,3 +36,12 @@ resource "aws_route53_record" "route53_record" {
   type            = each.value.type
   zone_id         = aws_route53_zone.hosting_zone.zone_id
 }
+
+resource "aws_ecr_repository" "ecr" {
+  name                 = "${local.owner}-${local.project}-ecr-repo"
+  image_tag_mutability = "MUTABLE"
+
+  tags = {
+    Name = "${local.owner}-${local.project}-ecr-repo"
+  }
+}

@@ -14,6 +14,8 @@ locals {
   environment = "dev"
   managed_by  = "Terraform"
 
+  domain_name = "mzc-devops.site"
+
   common_tags = {
     Owner       = local.owner
     Project     = local.project

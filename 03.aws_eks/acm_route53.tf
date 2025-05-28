@@ -3,7 +3,7 @@
 # - 도메인 인증용 ACM, DNS 레코드, 인증 검증 등
 ############################################################################
 resource "aws_acm_certificate" "cert" {
-  domain_name       = "${local.domain_name}"
+  domain_name       = local.domain_name
   validation_method = "DNS"
 
   subject_alternative_names = [
@@ -17,7 +17,7 @@ resource "aws_acm_certificate_validation" "cert_validation" {
 }
 
 resource "aws_route53_zone" "hosting_zone" {
-  name = "${local.domain_name}"
+  name = local.domain_name
 }
 
 resource "aws_route53_record" "route53_record" {

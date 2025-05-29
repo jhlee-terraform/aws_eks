@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: springboot-demo
+  namespace: demo
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/subnets: subnet-0a074fbd8b8b1ee32,subnet-02494f49f905d32c4
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/group.name: demo
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":80}, {"HTTPS":443}]'
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:ap-northeast-2:154551172320:certificate/c4a32672-553c-4809-a0a9-52ac7e272b70
+    alb.ingress.kubernetes.io/group.order: "1"
+    external-dns.alpha.kubernetes.io/hostname: spring.mzc-devops.site
+spec:
+  ingressClassName: alb
+  rules:
+    - host: spring.mzc-devops.site
+      http:
+        paths:
+          - path: /*
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: springboot-demo
+                port:
+                  number: 80
